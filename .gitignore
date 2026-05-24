@@ -45,3 +45,5 @@ lerna-debug.log*
 
 # Husky-managed (kept)
 !.husky/_/.gitignore
+
+.agents/*
