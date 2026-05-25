@@ -2,6 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryProvider } from './providers/QueryProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './providers/ToastProvider';
+import { AuthProvider } from './providers/AuthProvider';
 import { AppRoutes } from './routes';
 
 export function App() {
@@ -9,8 +10,10 @@ export function App() {
     <QueryProvider>
       <ThemeProvider>
         <BrowserRouter>
-          <AppRoutes />
-          <ToastProvider />
+          <AuthProvider>
+            <AppRoutes />
+            <ToastProvider />
+          </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>
     </QueryProvider>

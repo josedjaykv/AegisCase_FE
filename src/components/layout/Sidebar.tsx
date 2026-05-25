@@ -1,41 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import {
-  Briefcase,
-  ClipboardList,
-  FileSearch,
-  History,
-  Image as ImageIcon,
-  LayoutDashboard,
-  Palette,
-  ShieldCheck,
-  Users,
-  UsersRound,
-  type LucideIcon,
-} from 'lucide-react';
-import type { Role } from '@/auth/permissions';
+import { ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { env } from '@/lib/env';
 import { cn } from '@/lib/utils';
-
-interface NavItem {
-  to: string;
-  label: string;
-  Icon: LucideIcon;
-  roles: readonly Role[];
-  devOnly?: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: 'Dashboard', Icon: LayoutDashboard, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/cases', label: 'Cases', Icon: Briefcase, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/tasks', label: 'Tasks', Icon: ClipboardList, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/evidence', label: 'Evidence', Icon: FileSearch, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/involved', label: 'Involved', Icon: UsersRound, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/media', label: 'Media', Icon: ImageIcon, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/audit', label: 'Audit', Icon: History, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/users', label: 'Users', Icon: Users, roles: ['ADMIN'] },
-  { to: '/styleguide', label: 'Styleguide', Icon: Palette, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'], devOnly: true },
-];
+import { NAV_ITEMS } from './nav-items';
 
 export function Sidebar() {
   const role = useAuthStore((s) => s.user?.role);
@@ -78,7 +46,7 @@ export function Sidebar() {
       </nav>
       <div className="border-t border-border p-3 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">{role ?? 'No role'}</p>
-        <p>v0.1.0 · Phase 0</p>
+        <p>v0.1.0 · Phase 1</p>
       </div>
     </aside>
   );

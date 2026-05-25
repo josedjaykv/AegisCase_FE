@@ -122,7 +122,7 @@ docs/
 | Phase | Status | Plan | Implementation | Manual test |
 |---|---|---|---|---|
 | 0 — Tooling & component baseline | ✅ Completed | [plan](docs/phases/phase-0/plan.md) | [report](docs/phases/phase-0/implementation.md) | [guide](docs/phases/phase-0/manual-testing.md) |
-| 1 — Auth, session, role gating | ⬜ Not started | [plan](docs/phases/phase-1/plan.md) | — | — |
+| 1 — Auth, session, role gating | ✅ Completed | [plan](docs/phases/phase-1/plan.md) | [report](docs/phases/phase-1/implementation.md) | [guide](docs/phases/phase-1/manual-testing.md) |
 | 2 — Users module | ⬜ Not started | [plan](docs/phases/phase-2/plan.md) | — | — |
 | 3 — Cases module | ⬜ Not started | [plan](docs/phases/phase-3/plan.md) | — | — |
 | 4 — Involved persons | ⬜ Not started | [plan](docs/phases/phase-4/plan.md) | — | — |
