@@ -93,3 +93,97 @@ No other libs added.
 - The list has no client-side search/filter yet. Backend `GET /users` doesn't accept any filter param besides pagination, so we don't fake one. A search box can be added later if the backend grows the filter.
 - No optimistic create/update yet — the user list re-fetches after mutation. Optimistic patterns will land in Phase 6 (Tasks/Kanban) where they actually move the needle.
 - No bulk operations; the backend doesn't support them.
+
+---
+
+## Addendum — Keycloak ↔ user-service field-ownership policy (FE-only)
+
+Added on top of the original Phase 2 scope to keep `user-service` consistent with Keycloak without backend changes.
+
+### Policy in one sentence
+
+Identity fields (`keycloakUserId`, `firstNames`, `lastNames`, `role`) **belong to Keycloak**; the FE may display them but never lets a human edit them through `<UserForm>`. The only local mutation path for `role` is a self-sync action that pulls the value down from `/auth/me`.
+
+The full rationale, table of editable-vs-locked fields and acknowledged limitations are in [`docs/architecture/architecture.md` §4.7](../../architecture/architecture.md). A summary lives in `CLAUDE.md` "Always-on guardrails" so future phases honor it.
+
+### Changes
+
+1. **`UserForm.tsx`**
+   - `mode === 'edit'` now **disables** `keycloakUserId`, `firstNames`, `lastNames` and `role`.
+   - The PUT payload only contains `document`, `birthDate`, `jobTitle`. The Keycloak-owned fields are never sent on edit.
+   - An inline info note explains the contract in both create and edit modes.
+
+2. **`KeycloakSyncBanner.tsx`** (new, in `features/users/components/`)
+   - Shown by `UserDetailPage` only when:
+     - The loaded profile's `keycloakUserId === authUser.sub` (i.e., the admin is looking at their own profile), AND
+     - The loaded profile's `role` differs from `authUser.role` (drift between user-service and Keycloak).
+   - One-click `PUT /users/:id { role }` with the Keycloak-reported role. Toast confirms.
+
+3. **No new endpoints, no new backend dependency.** The mutation goes through the same `useUpdateUserMutation` already in `services/users/users.queries.ts`.
+
+### What this does NOT do (deferred, requires backend)
+
+- **No Keycloak prefill on create.** The FE still cannot list Keycloak users (no gateway endpoint). The admin types `keycloakUserId`/names/role manually.
+- **No drift detection for other users.** `/auth/me` is scoped to the caller; an admin viewing user X cannot pull X's Keycloak values down.
+- **No name sync even for self.** `/auth/me` does not return `firstNames`/`lastNames`.
+
+When the gateway grows a server-side sync endpoint (e.g. `POST /users/:id/sync`), the FE only needs to add a button — the field-ownership contract is already enforced.
+
+---
+
+## Addendum 2 — Keycloak user picker on create (requires backend endpoint)
+
+### What changed in the FE
+
+- New service module: `services/auth/keycloakUsers.{types,api,queries}.ts` with `useKeycloakUsersSearch({ search, page, limit })`. Standard `Paginated<KeycloakUser>` response with `provisioned` + `userServiceId` flags.
+- New shared hook: `hooks/useDebouncedValue.ts` (300 ms by default; used by the picker).
+- New component: `features/users/components/KeycloakUserPicker.tsx`. Search input + results list:
+  - Matches by name / email / UUID (server-side).
+  - Provisioned matches are rendered disabled with an "Open profile" link to `/users/<userServiceId>` — they cannot be selected.
+  - Unprovisioned matches are selectable; selecting locks the identity portion of the form to the Keycloak values.
+  - Empty results render the "Create the user in Keycloak first" guidance.
+  - `404` from the endpoint says explicitly the backend has not shipped the route yet — no silent fallback to manual entry.
+- `UserForm` refactor: split into `CreateUserForm` (picker + operational fields only) and `EditUserForm` (read-only Keycloak summary + operational fields). Schemas reduced to operational fields (`document`, `birthDate`, `jobTitle`); identity fields are no longer in form state at all.
+
+### Endpoint contract assumed (lives in `docs/architecture/api-integration.md` §7)
+
+```
+GET /auth/keycloak-users?search=<q>&page=<n>&limit=<m>     (ADMIN only)
+
+200 →
+{
+  data: [
+    {
+      sub: string,
+      firstName: string,
+      lastName: string,
+      email: string,
+      role: 'ADMIN' | 'DETECTIVE' | 'ANALYST' | null,
+      provisioned: boolean,
+      userServiceId: string | null
+    },
+    ...
+  ],
+  total: number, page: number, limit: number
+}
+```
+
+Until the backend ships this route, `/users/new` shows a clear "endpoint not available" error from the picker. The rest of `/users` keeps working.
+
+### Backend prompt (paste into your backend AI)
+
+See [`docs/phases/phase-2/backend-prompt-keycloak-search.md`](./backend-prompt-keycloak-search.md).
+
+### Full explainer
+
+A standalone reference covering the shipped flow, the alternatives we weighed, and the required Keycloak service-account configuration (with reasoning) is in [`docs/phases/phase-2/keycloak-user-search.md`](./keycloak-user-search.md).
+
+### Backend status
+
+✅ Shipped. Response shape matches the contract above verbatim. Implementation chose option (b) (HTTP join via a new internal `GET /users/by-keycloak-ids` on `user-service`) because `auth-service` had no DB connection. Service-account uses client-credentials against the same confidential client; admin token is cached. Tests: 41 unit + 11 e2e covering 401/403/400/happy/provisioned-join/`role: null`/offset-math/503/`/auth/me` regression.
+
+**Operational caveat** (flagged by backend): the route returns `503 Authentication service unavailable` until the `aegiscase-backend` Keycloak client's service account has `view-users` + `query-users` from `realm-management`. This is infra config — captured as a prerequisite in `manual-testing.md` §0.
+
+### FE follow-up after backend shipped
+
+- **Error-envelope nesting fix** — backend's `AllExceptionsFilter` wraps non-validation errors as `body.message.message` (string). The FE's `services/http/errors.ts` previously only handled `body.message` (string) and `body.message.message` (string[] = validation). Added a branch for the string case so that 503/business-400 messages surface verbatim instead of falling back to axios' generic `error.message`. `types/api.ts` `ApiErrorPayload` widened accordingly. No behavior change for routes that return a plain `body.message` string.

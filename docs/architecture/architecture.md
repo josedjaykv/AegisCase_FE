@@ -76,6 +76,36 @@ Additional **conditional gates** the matrix alone cannot express (must be coded 
 - Reopen-closed-case: only ADMIN when current `status === CLOSED`.
 - Cancel task: ANALYST cannot send `CANCELLED`.
 
+## 4.7 Field ownership — Keycloak vs. user-service
+
+The backend has two sources of truth for "who a user is":
+
+- **Keycloak** owns *identity*: credentials, sessions, realm roles, `sub`, `firstName`, `lastName`, `email`.
+- **user-service** owns the *operational profile*: `document`, `birthDate`, `jobTitle` plus a mirror of the Keycloak-owned `firstNames`/`lastNames`/`role` keyed by `keycloakUserId` so other services (cases, tasks, evidence) have a stable local FK.
+
+Because the mirror in user-service can drift from Keycloak (a role change in Keycloak does not auto-propagate today), the FE enforces a strict policy:
+
+| Field | Editable from FE? | Source of truth |
+|---|---|---|
+| `keycloakUserId` | Never (set once at create) | Keycloak `sub` |
+| `firstNames`, `lastNames` | **Never** | Keycloak |
+| `role` | **Never via the form**. The user's own profile may pull the Keycloak value via the sync banner | Keycloak realm role |
+| `document`, `birthDate`, `jobTitle` | Yes (ADMIN) | user-service |
+
+### Implementation rules
+
+- `<UserForm mode="edit">` does not even render inputs for the Keycloak-owned fields — they appear in a read-only summary card pulled from the loaded profile, and the PUT payload only contains `document`, `birthDate`, `jobTitle`.
+- `<UserForm mode="create">` shows a `<KeycloakUserPicker>` (`features/users/components/`) instead of free-text identity inputs. The picker calls `GET /auth/keycloak-users?search=&page=&limit=` (see [`api-integration.md` §7](api-integration.md)) and returns matches with name + email + role + `provisioned` flag. Selecting an unprovisioned user locks the identity portion of the payload to Keycloak's own values; provisioned matches are shown but disabled with an "Open profile" link instead of being selectable.
+- The picker fails closed: an empty result set tells the admin "Create the user in Keycloak first"; a `404` from the endpoint says explicitly that the backend hasn't shipped the route yet. No fallback to manual identity entry — that would re-open the door to drift.
+- `<KeycloakSyncBanner>` (`features/users/components/`) renders on `/users/:id` only when the current logged-in user is viewing their **own** profile (`profile.keycloakUserId === authUser.sub`) **and** the local `role` differs from what `/auth/me` returned. A single click pulls the Keycloak value down via `PUT /users/:id { role }`. This is the only sanctioned path through which `role` changes locally for self.
+
+### Limitations (still pending, out of scope for the FE-only iteration even with the picker)
+
+- **No cross-user sync.** An admin viewing another user's profile cannot pull that user's current Keycloak values down — `/auth/me` is scoped to the caller. A future `POST /users/:id/sync` (server-side Keycloak admin call) would cover this for any user.
+- **No name drift detection.** Neither `/auth/me` nor (currently) the create-time picker keeps polling; once a profile exists, FE has no signal that Keycloak names have changed.
+
+The picker closes the prefill gap; the remaining items only require backend additions and zero FE changes when they ship (the field-ownership contract already forbids local authorship of those fields).
+
 ## 5. Critical UX guards
 
 These come straight from the backend's side-effect endpoints (`BACKEND_INVESTIGATION_REPORT.md` §3.6, §6.2) and must be implemented as explicit components:

@@ -20,6 +20,12 @@ Step-by-step verification of Phase 2 from a clean checkout. Phase 2 makes real H
   - `analyst1@aegiscase.com / ...`
 - **At least one extra Keycloak user already provisioned** that does **not** yet have a `user-service` profile (otherwise the "create user" step will conflict). You can copy the Keycloak `sub` UUID from the Keycloak admin UI.
 - **CORS allow-origin** on the backend: `CORS_ORIGIN=http://localhost:5173`.
+- **Keycloak service-account permissions for the picker** (`GET /auth/keycloak-users`). The backend client `aegiscase-backend` (or whatever your seed uses) needs the realm-management roles **`view-users`** and **`query-users`** so its service-account can list Keycloak users. Without this the picker endpoint returns `503 Authentication service unavailable`. To set it:
+  1. Keycloak admin console → **Clients** → `aegiscase-backend` → **Service account roles**.
+  2. **Assign role** → filter "Filter by clients" → `realm-management` → assign `view-users` and `query-users`.
+  3. Restart `auth-service` (so its admin token cache clears) or just wait for the cached token to expire.
+
+  Full reasoning for this config (and why it's infra, not code) is in [`keycloak-user-search.md`](./keycloak-user-search.md) §4.
 
 ---
 
@@ -227,9 +233,168 @@ In every viewport, every action remains reachable by tap — no hover-only affor
 
 ---
 
-## 16. Done
+## 16. Keycloak field-ownership policy (addendum)
 
-If steps 4–15 pass, Phase 2's success criteria are met:
+This block verifies the policy added on top of the original Phase 2 scope (see `docs/architecture/architecture.md` §4.7).
+
+### 16.1 Create form — info note
+
+Navigate to `/users/new`. **Expect** a blue-tinted info note at the top of the card with a lock icon, saying that Keycloak user ID / first names / last names / role must match what is in Keycloak and **won't be editable after creation**.
+
+### 16.2 Edit form — Keycloak fields are locked
+
+Open any existing user (`/users/<id>`). **Expect**:
+
+- The same info note, this time saying the four identity fields are managed in Keycloak.
+- **Disabled** (greyed out, not focusable, no caret) inputs for: **Keycloak user ID**, **First names**, **Last names**.
+- **Disabled** dropdown for **Role** — clicking it doesn't open the menu.
+- **Editable** inputs only for **Document**, **Birth date**, **Job title**.
+
+Try to focus a disabled field with Tab — focus skips over it.
+
+### 16.3 Edit submits only the operational fields
+
+With DevTools → Network open, change the **Job title** of the user and click **Save changes**.
+
+**Expect**:
+- `PUT /users/<id>` request.
+- The request body contains **only** `document`, `jobTitle` (and `birthDate` if set). **No** `firstNames`, `lastNames`, `role`, `keycloakUserId`.
+
+This is the FE-side enforcement of the field-ownership policy.
+
+### 16.4 Self-sync banner — happy path
+
+Pre-condition: you are logged in as the **ADMIN** seed user, and there is a `user-service` profile whose `keycloakUserId` is the same as your token's `sub`. If you don't have one yet, create it with your real Keycloak admin sub (you can read your `sub` from DevTools → Application → memory of the Zustand auth store, or from the JWT at jwt.io).
+
+1. Navigate to `/users` and click on your own profile (it'll be the row whose name matches what Keycloak has for you).
+2. **Expect no banner** — your local role and Keycloak role match.
+
+Now simulate drift:
+
+1. Open DevTools → Network and intercept, OR temporarily change your role in the DB (if you have shell access), OR — easiest — edit a *different* user's profile, change its role in Keycloak admin console (not from this UI), and re-log in as that user.
+2. Open your own `/users/:id` again.
+3. **Expect** a warning-tinted banner above the form: "Out of sync with Keycloak — Your role here is `<X>` but Keycloak reports `<Y>`."
+4. Click **Sync from Keycloak**. **Expect**:
+   - A green toast "Role synced from Keycloak (`<Y>`)".
+   - The banner disappears (the list query is invalidated and re-fetches).
+   - The form now shows the Keycloak role.
+   - In DevTools → Network, the `PUT /users/:id` request body contains **only** `{ role: '<Y>' }` — nothing else.
+
+### 16.5 Self-sync banner does NOT show for other users
+
+While logged in as ADMIN, open another user's detail page (one whose `keycloakUserId !== your sub`).
+
+**Expect**: no banner ever, even if their local role differs from anything. The banner is scoped to *self* only (because `/auth/me` is the only Keycloak truth the FE has, and it is scoped to the caller).
+
+This is the documented limitation in `docs/architecture/architecture.md` §4.7.
+
+### 16.6 Non-ADMIN cannot see this at all
+
+Sign in as **DETECTIVE** or **ANALYST** and confirm you still cannot reach `/users/...` (Phase 2 step 5). The field-ownership policy lives entirely inside the ADMIN-gated routes.
+
+---
+
+## 17. Keycloak picker on create (live backend)
+
+This block tests the `<KeycloakUserPicker>` flow on `/users/new`. The endpoint is `GET /auth/keycloak-users?search=&page=&limit=` (contract in [`docs/architecture/api-integration.md` §7](../../architecture/api-integration.md); backend response shape matches verbatim).
+
+### 17.1 Endpoint is reachable (sanity)
+
+While logged in as **ADMIN**, run from a terminal:
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@aegiscase.com","password":"Admin1234!"}' | jq -r .access_token)
+
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'http://localhost:3000/auth/keycloak-users?search=ad&page=1&limit=5' | jq
+```
+
+**Expect** a JSON body with `data` (array), `total`, `page`, `limit`. If you get `503 Authentication service unavailable`, go back to Prerequisite "Keycloak service-account permissions for the picker" and grant `view-users` + `query-users` to the service account.
+
+In the FE, open `/users/new` and confirm the picker is empty/idle until you type.
+
+### 17.2 Search finds matches
+
+With the endpoint live, type a few characters of an existing Keycloak user's first name, last name or email.
+
+**Expect**:
+- A `GET /auth/keycloak-users?search=<q>&page=1&limit=10` request (DevTools → Network).
+- Up to 10 results below the input. Each row shows: full name, email, role badge (or "no role" if Keycloak has none).
+- Typing more characters narrows results without flicker (TanStack Query `keepPreviousData`).
+
+### 17.3 Empty results explain the next step
+
+Type something that matches nothing (e.g. `zzzzz`).
+
+**Expect** a neutral message:
+> No Keycloak user matches that search. Create the user in Keycloak first, then come back.
+
+### 17.4 Provisioned users are non-selectable and link to their profile
+
+Find a Keycloak user that you already provisioned in earlier steps.
+
+**Expect** the row to be **disabled** (faded, not clickable as "Select") and to show an **Open profile** link on the right that navigates to `/users/<id>`. Clicking the row itself does nothing.
+
+### 17.5 Unprovisioned selection locks identity
+
+Pick an unprovisioned match.
+
+**Expect**:
+- The search input disappears.
+- A summary card replaces it with the user's full name, email, sub (mono font), and role badge, plus an **×** button to clear.
+- The form's **Document** / **Birth date** / **Job title** inputs become enabled (they were disabled before a selection).
+
+Click **×** — the picker comes back, the operational inputs disable again.
+
+### 17.6 Create with picker — happy path
+
+Pick an unprovisioned user, fill **Document** (unique), optionally birth date and job title, and click **Create user**.
+
+**Expect**:
+- DevTools → Network: `POST /users` with body that contains `keycloakUserId`, `firstNames`, `lastNames`, `role` taken **exactly** from the picker's selected user, plus `document`/`birthDate`/`jobTitle` from the form.
+- Toast "User created".
+- Navigation to `/users/<new-id>`.
+- The new user appears in the list with the right name and role.
+
+### 17.7 Keycloak user with no app role
+
+If you have a Keycloak user without a realm role (`null` role in the picker), select them.
+
+**Expect**:
+- The summary card shows a "No app role in Keycloak" pill instead of a role badge.
+- A warning text below the picker tells you to assign a role in Keycloak first.
+- The **Create user** button stays disabled until you go to Keycloak, assign one of `ADMIN`/`DETECTIVE`/`ANALYST` to that user, and re-pick them.
+
+### 17.8 Document conflict still surfaces inline
+
+Pick an unprovisioned user, reuse the document of an existing profile, click **Create user**.
+
+**Expect** the inline error under **Document** ("Document already registered") with no toast — same behavior as section 10.
+
+### 17.9 503 surfaces a clean message (optional)
+
+To verify the error path, temporarily remove the `view-users`/`query-users` roles from the `aegiscase-backend` service account in Keycloak and restart `auth-service` (or wait for the admin-token cache to expire). Then type 2+ chars in the picker.
+
+**Expect** a red alert under the search input with the backend's own message — e.g. *"Authentication service unavailable"* — surfaced from `body.message.message` via the FE's normalized error handler. A global red toast ("A required service is unavailable. Try again shortly.") also appears (axios 503 handler).
+
+Re-grant the roles and continue.
+
+### 17.10 Edit page no longer shows identity inputs
+
+Open any existing user's `/users/:id`.
+
+**Expect**:
+- The Keycloak fields appear inside a **read-only summary card** (no inputs at all), showing first names, last names, role badge, Keycloak user ID.
+- Only **Document**, **Birth date** and **Job title** are real inputs.
+- Saving still only sends operational fields (verify in DevTools → Network).
+
+---
+
+## 18. Done
+
+If steps 4–17 pass (including 17.1–17.10 against the live Keycloak picker endpoint), Phase 2's success criteria (plus the field-ownership and Keycloak-picker addenda) are met:
 
 - ✅ Pagination works and is URL-driven.
 - ✅ NestJS validation errors (array format) map to RHF fields.

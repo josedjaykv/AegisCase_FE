@@ -25,12 +25,20 @@ function fromAxios(error: AxiosError<ApiErrorPayload>): NormalizedApiError {
     return { status, message: rawMessage };
   }
 
-  if (rawMessage && Array.isArray(rawMessage.message)) {
-    return {
-      status,
-      message: rawMessage.error ?? 'Validation error',
-      fieldErrors: groupFieldErrors(rawMessage.message),
-    };
+  if (rawMessage && typeof rawMessage === 'object') {
+    if (Array.isArray(rawMessage.message)) {
+      return {
+        status,
+        message: rawMessage.error ?? 'Validation error',
+        fieldErrors: groupFieldErrors(rawMessage.message),
+      };
+    }
+    // Backend's AllExceptionsFilter nests the user-facing string at
+    // `body.message.message` for non-validation errors (e.g. 503, business
+    // 400). Prefer it over axios' generic error.message.
+    if (typeof rawMessage.message === 'string') {
+      return { status, message: rawMessage.message };
+    }
   }
 
   return { status, message: error.message || 'Request failed' };

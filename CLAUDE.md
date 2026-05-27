@@ -61,6 +61,13 @@ These apply on every turn regardless of which docs you loaded. Violations are re
   - `GET /audit*` query params: `entity_type`, `entity_id`, `user_id`, `from_date`, `to_date`, `action` (snake_case).
 - Translate at the network boundary in `services/<domain>/`, never anywhere else.
 
+### Keycloak vs. user-service field ownership
+
+- `keycloakUserId`, `firstNames`, `lastNames`, `role` are **owned by Keycloak**. The FE never authors them via free-text inputs — `<UserForm mode="edit">` shows them only as a read-only summary and omits them from the PUT payload.
+- `<UserForm mode="create">` uses `<KeycloakUserPicker>` against `GET /auth/keycloak-users?search=` (see `docs/architecture/api-integration.md` §7). The identity portion of the create payload (`keycloakUserId`/`firstNames`/`lastNames`/`role`) is taken verbatim from the selected Keycloak user — there is no manual override.
+- The only sanctioned local mutation of `role` is `<KeycloakSyncBanner>`, which is shown only when the current user is viewing their own profile and the local role has drifted from `/auth/me`. It pulls the Keycloak value down via `PUT /users/:id { role }`.
+- Full policy + remaining limitations (cross-user sync, name drift) are in `docs/architecture/architecture.md` §4.7.
+
 ### Permissions (FE gating; backend is authoritative)
 
 - Use `<RoleGate roles={…}>` and `usePermissions().can(action)`. Hiding ≠ securing — the server still enforces. The gate is for UX hygiene.
