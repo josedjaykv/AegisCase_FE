@@ -141,7 +141,7 @@ Click the avatar in the top-bar → "Sign out".
 
 ---
 
-## 8. ProtectedRoute redirects with return path
+## 8. ProtectedRoute redirects with return path ❌
 
 While logged out, paste `http://localhost:5173/styleguide` into the address bar.
 

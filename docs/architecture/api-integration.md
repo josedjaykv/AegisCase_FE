@@ -82,3 +82,24 @@ function toAuditQuery(input: AuditQuery): URLSearchParams {
 ```
 
 Same pattern for `POST /media` multipart fields.
+
+## 7. Keycloak user lookup (FE picker contract)
+
+`GET /auth/keycloak-users?search=<q>&page=<n>&limit=<m>` is consumed by `<KeycloakUserPicker>` on `/users/new` and (later) any user-selection picker (case leader, task assignee, evidence custodian).
+
+- **Roles:** ADMIN.
+- **Response shape:** standard `Paginated<KeycloakUser>` (camelCase end-to-end). Each item:
+  ```ts
+  {
+    sub: string;                 // Keycloak `sub`, used as keycloakUserId
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: 'ADMIN' | 'DETECTIVE' | 'ANALYST' | null;  // Keycloak realm role
+    provisioned: boolean;        // true if user-service has a profile for this sub
+    userServiceId: string | null; // FK to user-service users.id if provisioned
+  }
+  ```
+- **FE policy:** results with `provisioned: true` are rendered disabled with a link to `/users/<userServiceId>` ("Open profile"). Selecting an unprovisioned result pre-fills the create payload's identity fields from Keycloak; the admin only completes `document`, `birthDate`, `jobTitle`.
+- **Caching:** `staleTime` 30 s, `gcTime` 2 min, `keepPreviousData` to avoid result flicker while typing.
+- **Errors:** a `404` from this endpoint surfaces a "backend hasn't shipped the route yet" message in the picker; `403` surfaces a permission message. The form does not fall back to manual identity entry on error — that would re-open the door to drift.

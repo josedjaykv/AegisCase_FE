@@ -61,6 +61,13 @@ These apply on every turn regardless of which docs you loaded. Violations are re
   - `GET /audit*` query params: `entity_type`, `entity_id`, `user_id`, `from_date`, `to_date`, `action` (snake_case).
 - Translate at the network boundary in `services/<domain>/`, never anywhere else.
 
+### Keycloak vs. user-service field ownership
+
+- `keycloakUserId`, `firstNames`, `lastNames`, `role` are **owned by Keycloak**. The FE never authors them via free-text inputs — `<UserForm mode="edit">` shows them only as a read-only summary and omits them from the PUT payload.
+- `<UserForm mode="create">` uses `<KeycloakUserPicker>` against `GET /auth/keycloak-users?search=` (see `docs/architecture/api-integration.md` §7). The identity portion of the create payload (`keycloakUserId`/`firstNames`/`lastNames`/`role`) is taken verbatim from the selected Keycloak user — there is no manual override.
+- The only sanctioned local mutation of `role` is `<KeycloakSyncBanner>`, which is shown only when the current user is viewing their own profile and the local role has drifted from `/auth/me`. It pulls the Keycloak value down via `PUT /users/:id { role }`.
+- Full policy + remaining limitations (cross-user sync, name drift) are in `docs/architecture/architecture.md` §4.7.
+
 ### Permissions (FE gating; backend is authoritative)
 
 - Use `<RoleGate roles={…}>` and `usePermissions().can(action)`. Hiding ≠ securing — the server still enforces. The gate is for UX hygiene.
@@ -123,7 +130,7 @@ docs/
 |---|---|---|---|---|
 | 0 — Tooling & component baseline | ✅ Completed | [plan](docs/phases/phase-0/plan.md) | [report](docs/phases/phase-0/implementation.md) | [guide](docs/phases/phase-0/manual-testing.md) |
 | 1 — Auth, session, role gating | ✅ Completed | [plan](docs/phases/phase-1/plan.md) | [report](docs/phases/phase-1/implementation.md) | [guide](docs/phases/phase-1/manual-testing.md) |
-| 2 — Users module | ⬜ Not started | [plan](docs/phases/phase-2/plan.md) | — | — |
+| 2 — Users module | ✅ Completed | [plan](docs/phases/phase-2/plan.md) | [report](docs/phases/phase-2/implementation.md) | [guide](docs/phases/phase-2/manual-testing.md) |
 | 3 — Cases module | ⬜ Not started | [plan](docs/phases/phase-3/plan.md) | — | — |
 | 4 — Involved persons | ⬜ Not started | [plan](docs/phases/phase-4/plan.md) | — | — |
 | 5 — Evidence + COC | ⬜ Not started | [plan](docs/phases/phase-5/plan.md) | — | — |
