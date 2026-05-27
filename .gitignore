@@ -47,3 +47,9 @@ lerna-debug.log*
 !.husky/_/.gitignore
 
 .agents/*
+
+# Claude Code local project config (skills symlinks, settings)
+.claude/
+
+# Skills installer lockfile (local)
+skills-lock.json
