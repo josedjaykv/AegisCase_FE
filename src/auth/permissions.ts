@@ -13,6 +13,7 @@ export type PermissionAction =
   | 'case.reopen'
   | 'case.archive'
   | 'case.team.add'
+  | 'case.team.updateRole'
   | 'case.team.read'
   | 'involved.create'
   | 'involved.read'
@@ -46,6 +47,7 @@ export const PERMISSIONS: Record<PermissionAction, readonly Role[]> = {
   'case.reopen': ['ADMIN'],
   'case.archive': ['ADMIN'],
   'case.team.add': ['ADMIN', 'DETECTIVE'],
+  'case.team.updateRole': ['ADMIN', 'DETECTIVE'],
   'case.team.read': ['ADMIN', 'DETECTIVE', 'ANALYST'],
 
   'involved.create': ['ADMIN', 'DETECTIVE'],

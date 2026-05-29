@@ -4,6 +4,7 @@ import type {
   CreateUserInput,
   UpdateUserInput,
   User,
+  UserDirectoryEntry,
   UsersListParams,
 } from './users.types';
 
@@ -27,6 +28,19 @@ export const usersApi = {
 
   async update(id: string, input: UpdateUserInput): Promise<User> {
     const { data } = await httpClient.put<User>(`/users/${id}`, input);
+    return data;
+  },
+
+  /**
+   * Resolve a batch of Keycloak `sub`s into the minimal display projection.
+   * Backed by `GET /users/directory` (all-roles, PII-free). Returns only the
+   * subs that have a local profile; unknown subs are silently omitted.
+   */
+  async getDirectory(subs: string[]): Promise<UserDirectoryEntry[]> {
+    if (subs.length === 0) return [];
+    const { data } = await httpClient.get<UserDirectoryEntry[]>('/users/directory', {
+      params: { ids: subs.join(',') },
+    });
     return data;
   },
 };

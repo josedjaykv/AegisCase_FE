@@ -10,15 +10,30 @@ import { isNormalizedApiError } from '@/services/http/errors';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { RoleBadge } from './RoleBadge';
 
+/**
+ * - `provision` (default): selecting a Keycloak user to CREATE a new local
+ *   profile. Users that already have a profile are disabled (would 409) and
+ *   link to their existing profile.
+ * - `assign`: selecting an existing app user (e.g. a case leader / team
+ *   member). Only users that already have a local profile are selectable;
+ *   un-provisioned Keycloak users are disabled with a "no profile yet" hint.
+ */
+type PickerMode = 'provision' | 'assign';
+
 interface KeycloakUserPickerProps {
   value: KeycloakUser | null;
   onChange: (next: KeycloakUser | null) => void;
+  mode?: PickerMode;
 }
 
 const MIN_SEARCH_LENGTH = 2;
 const PAGE_LIMIT = 10;
 
-export function KeycloakUserPicker({ value, onChange }: KeycloakUserPickerProps) {
+export function KeycloakUserPicker({
+  value,
+  onChange,
+  mode = 'provision',
+}: KeycloakUserPickerProps) {
   const [query, setQuery] = useState('');
   const debounced = useDebouncedValue(query.trim(), 300);
   const enabled = !value && debounced.length >= MIN_SEARCH_LENGTH;
@@ -100,6 +115,7 @@ export function KeycloakUserPicker({ value, onChange }: KeycloakUserPickerProps)
       {enabled && search.data && (
         <ResultsList
           results={search.data.data}
+          mode={mode}
           onSelect={(u) => {
             onChange(u);
             setQuery('');
@@ -112,9 +128,11 @@ export function KeycloakUserPicker({ value, onChange }: KeycloakUserPickerProps)
 
 function ResultsList({
   results,
+  mode,
   onSelect,
 }: {
   results: KeycloakUser[];
+  mode: PickerMode;
   onSelect: (u: KeycloakUser) => void;
 }) {
   if (results.length === 0) {
@@ -122,7 +140,9 @@ function ResultsList({
       <div className="rounded-md border border-dashed border-border bg-card/50 p-3 text-xs text-muted-foreground">
         No Keycloak user matches that search.
         <span className="ml-1 text-foreground">
-          Create the user in Keycloak first, then come back.
+          {mode === 'provision'
+            ? 'Create the user in Keycloak first, then come back.'
+            : 'They must exist in Keycloak to be assigned.'}
         </span>
       </div>
     );
@@ -130,43 +150,50 @@ function ResultsList({
 
   return (
     <ul className="divide-y divide-border rounded-md border border-border bg-card">
-      {results.map((u) => (
-        <li key={u.sub} className="p-2">
-          <button
-            type="button"
-            onClick={() => !u.provisioned && onSelect(u)}
-            disabled={u.provisioned}
-            className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-accent/40 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-transparent"
-          >
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <p className="truncate text-sm font-medium text-foreground">
-                {u.firstName} {u.lastName}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">{u.email}</p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              {u.role ? (
-                <RoleBadge role={u.role} />
-              ) : (
-                <span className="rounded-full border border-warning/40 px-2 py-0.5 text-[10px] uppercase text-foreground">
-                  no role
-                </span>
-              )}
-              {u.provisioned && u.userServiceId ? (
-                <Link
-                  to={`/users/${u.userServiceId}`}
-                  className="text-xs text-primary underline-offset-2 hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Open profile
-                </Link>
-              ) : (
-                <span className="text-xs text-muted-foreground">Select</span>
-              )}
-            </div>
-          </button>
-        </li>
-      ))}
+      {results.map((u) => {
+        // provision: can only pick users WITHOUT a local profile.
+        // assign: can only pick users WITH a local profile.
+        const disabled = mode === 'provision' ? u.provisioned : !u.provisioned;
+        return (
+          <li key={u.sub} className="p-2">
+            <button
+              type="button"
+              onClick={() => !disabled && onSelect(u)}
+              disabled={disabled}
+              className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-accent/40 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-transparent"
+            >
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="truncate text-sm font-medium text-foreground">
+                  {u.firstName} {u.lastName}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {u.role ? (
+                  <RoleBadge role={u.role} />
+                ) : (
+                  <span className="rounded-full border border-warning/40 px-2 py-0.5 text-[10px] uppercase text-foreground">
+                    no role
+                  </span>
+                )}
+                {mode === 'provision' && u.provisioned && u.userServiceId ? (
+                  <Link
+                    to={`/users/${u.userServiceId}`}
+                    className="text-xs text-primary underline-offset-2 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Open profile
+                  </Link>
+                ) : mode === 'assign' && !u.provisioned ? (
+                  <span className="text-xs text-muted-foreground">No profile yet</span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Select</span>
+                )}
+              </div>
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }

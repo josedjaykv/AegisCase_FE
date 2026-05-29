@@ -131,7 +131,7 @@ docs/
 | 0 — Tooling & component baseline | ✅ Completed | [plan](docs/phases/phase-0/plan.md) | [report](docs/phases/phase-0/implementation.md) | [guide](docs/phases/phase-0/manual-testing.md) |
 | 1 — Auth, session, role gating | ✅ Completed | [plan](docs/phases/phase-1/plan.md) | [report](docs/phases/phase-1/implementation.md) | [guide](docs/phases/phase-1/manual-testing.md) |
 | 2 — Users module | ✅ Completed | [plan](docs/phases/phase-2/plan.md) | [report](docs/phases/phase-2/implementation.md) | [guide](docs/phases/phase-2/manual-testing.md) |
-| 3 — Cases module | ⬜ Not started | [plan](docs/phases/phase-3/plan.md) | — | — |
+| 3 — Cases module | ✅ Completed | [plan](docs/phases/phase-3/plan.md) | [report](docs/phases/phase-3/implementation.md) | [guide](docs/phases/phase-3/manual-testing.md) |
 | 4 — Involved persons | ⬜ Not started | [plan](docs/phases/phase-4/plan.md) | — | — |
 | 5 — Evidence + COC | ⬜ Not started | [plan](docs/phases/phase-5/plan.md) | — | — |
 | 6 — Tasks + Kanban | ⬜ Not started | [plan](docs/phases/phase-6/plan.md) | — | — |
