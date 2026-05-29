@@ -7,6 +7,7 @@ import type {
   CasesListParams,
   ChangeStatusInput,
   CreateCaseInput,
+  TeamRole,
   UpdateCaseInput,
 } from './cases.types';
 
@@ -50,6 +51,17 @@ export const casesApi = {
 
   async addTeamMember(id: string, input: AddTeamMemberInput): Promise<CaseTeamMember> {
     const { data } = await httpClient.post<CaseTeamMember>(`/cases/${id}/team`, input);
+    return data;
+  },
+
+  async updateTeamMemberRole(
+    id: string,
+    userId: string,
+    teamRole: TeamRole,
+  ): Promise<CaseTeamMember> {
+    const { data } = await httpClient.patch<CaseTeamMember>(`/cases/${id}/team/${userId}`, {
+      teamRole,
+    });
     return data;
   },
 };

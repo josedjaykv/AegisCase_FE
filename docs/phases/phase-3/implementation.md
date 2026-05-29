@@ -80,6 +80,7 @@ This keeps user-selection logic in one place for the leader picker, the add-team
 ## Known limitations
 
 - **No "remove team member"** — the backend exposes no such endpoint.
+- **Team role editing** is limited to `LEAD ↔ MEMBER`; `CREATOR` is immutable (see addendum below).
 - **No client-side case filters/search yet** — `GET /cases` only accepts pagination. Add when the backend grows filters.
 - **Leader reassignment on edit** is optional: the current leader shows by name (or the raw sub if their profile hasn't been provisioned); searching and picking a new one replaces it, otherwise the existing value is kept.
 
@@ -108,3 +109,24 @@ After the initial Phase 3 ship, the backend added `GET /users/directory?ids=<sub
 ### Closes the original limitation
 
 The Phase 3 "Known limitations" entry about team/leader being shown as UUIDs is **resolved**. The previous reasoning (don't show names for admins only) was specifically about the existing ADMIN-only `/users/by-keycloak-ids` route; the new `/users/directory` is open to all authenticated roles and PII-free, so names are now consistent for ADMIN, DETECTIVE and ANALYST alike.
+
+---
+
+## Addendum 2 — editing a team member's role
+
+After the initial ship, the backend added `PATCH /cases/:id/team/:userId { teamRole }` (all the contract details are in [`backend-prompt-team-role-update.md`](./backend-prompt-team-role-update.md)). The FE now lets an ADMIN/DETECTIVE change an existing member's role from the **Manage** (team) page.
+
+### FE wiring
+
+- **`services/cases/cases.api.ts`** — `updateTeamMemberRole(id, userId, teamRole)` → `PATCH /cases/:id/team/:userId`.
+- **`services/cases/cases.queries.ts`** — `useUpdateTeamMemberRoleMutation(id)`; invalidates `casesQueryKeys.team(id)` and `detail(id)` on success.
+- **`auth/permissions.ts`** — added `case.team.updateRole` (ADMIN, DETECTIVE), mirroring the backend matrix.
+- **`features/cases/components/TeamMemberList.tsx`** — gains `caseId` + `editable` props. When editable, `LEAD`/`MEMBER` rows render an inline role `Select` (`RolePicker`); the `CREATOR` row always renders a static badge — its role is immutable. The change is fire-and-forget with a success toast; `403` is left to the interceptor.
+- **`features/cases/pages/CaseTeamPage.tsx`** — computes `canManage = can('case.team.updateRole') && !locked`, where `locked` is true when the case is `CLOSED` or `archived`. Passes `editable={canManage}`. A read-only banner explains why editing is disabled on a closed/archived case. The **Add member** button is hidden under the same `canManage` gate.
+
+### Behavior honored from the backend contract
+
+- **Only `LEAD ↔ MEMBER`.** `CREATOR` is never offered as a target nor editable on the creator's row.
+- **Closed/archived case → read-only.** The FE hides the controls; the backend 400 ("A closed case cannot be modified") is the safety net.
+- **Idempotent.** Selecting the role a member already has is a no-op (we early-return without calling).
+- **Detail-page Overview team card stays read-only** — editing happens only on the dedicated `/cases/:id/team` page.

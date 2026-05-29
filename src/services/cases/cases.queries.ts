@@ -11,6 +11,7 @@ import type {
   CasesListParams,
   ChangeStatusInput,
   CreateCaseInput,
+  TeamRole,
   UpdateCaseInput,
 } from './cases.types';
 
@@ -99,6 +100,18 @@ export function useAddTeamMemberMutation(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: AddTeamMemberInput) => casesApi.addTeamMember(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: casesQueryKeys.team(id) });
+      qc.invalidateQueries({ queryKey: casesQueryKeys.detail(id) });
+    },
+  });
+}
+
+export function useUpdateTeamMemberRoleMutation(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, teamRole }: { userId: string; teamRole: TeamRole }) =>
+      casesApi.updateTeamMemberRole(id, userId, teamRole),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: casesQueryKeys.team(id) });
       qc.invalidateQueries({ queryKey: casesQueryKeys.detail(id) });

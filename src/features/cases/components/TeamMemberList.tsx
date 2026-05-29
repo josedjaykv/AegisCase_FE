@@ -1,10 +1,20 @@
 import { useMemo } from 'react';
+import { toast } from 'sonner';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { EmptyState } from '@/components/data/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Users } from 'lucide-react';
 import type { CaseTeamMember, TeamRole } from '@/services/cases/cases.types';
 import { useDisplayNames } from '@/services/users/users.queries';
+import { useUpdateTeamMemberRoleMutation } from '@/services/cases/cases.queries';
+import { isNormalizedApiError } from '@/services/http/errors';
 
 const ROLE_TONE: Record<TeamRole, BadgeProps['tone']> = {
   CREATOR: 'primary',
@@ -12,12 +22,19 @@ const ROLE_TONE: Record<TeamRole, BadgeProps['tone']> = {
   MEMBER: 'neutral',
 };
 
+// Only LEAD ↔ MEMBER are assignable; CREATOR is immutable provenance.
+const EDITABLE_ROLES: TeamRole[] = ['LEAD', 'MEMBER'];
+
 interface TeamMemberListProps {
   members: CaseTeamMember[] | undefined;
   isLoading?: boolean;
+  /** When set, MEMBER/LEAD rows expose an inline role picker. */
+  caseId?: string | undefined;
+  /** Gate from the parent (role + not-closed + not-archived). */
+  editable?: boolean | undefined;
 }
 
-export function TeamMemberList({ members, isLoading }: TeamMemberListProps) {
+export function TeamMemberList({ members, isLoading, caseId, editable }: TeamMemberListProps) {
   const subs = useMemo(() => members?.map((m) => m.userId) ?? [], [members]);
   const { displayName } = useDisplayNames(subs);
 
@@ -62,10 +79,47 @@ export function TeamMemberList({ members, isLoading }: TeamMemberListProps) {
                 Linked {new Date(m.linkedAt).toLocaleDateString()}
               </p>
             </div>
-            <Badge tone={ROLE_TONE[m.teamRole]}>{m.teamRole}</Badge>
+
+            {editable && caseId && m.teamRole !== 'CREATOR' ? (
+              <RolePicker caseId={caseId} member={m} />
+            ) : (
+              <Badge tone={ROLE_TONE[m.teamRole]}>{m.teamRole}</Badge>
+            )}
           </li>
         );
       })}
     </ul>
+  );
+}
+
+function RolePicker({ caseId, member }: { caseId: string; member: CaseTeamMember }) {
+  const mutation = useUpdateTeamMemberRoleMutation(caseId);
+
+  const onChange = async (next: string) => {
+    if (next === member.teamRole) return;
+    try {
+      await mutation.mutateAsync({ userId: member.userId, teamRole: next as TeamRole });
+      toast.success(`Role changed to ${next}`);
+    } catch (err) {
+      // 403 is surfaced by the axios interceptor toast.
+      if (isNormalizedApiError(err) && err.status !== 403) {
+        toast.error(err.message);
+      }
+    }
+  };
+
+  return (
+    <Select value={member.teamRole} onValueChange={onChange} disabled={mutation.isPending}>
+      <SelectTrigger className="h-8 w-32" aria-label="Change team role">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {EDITABLE_ROLES.map((r) => (
+          <SelectItem key={r} value={r}>
+            {r}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

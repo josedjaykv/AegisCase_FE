@@ -234,9 +234,36 @@ With DevTools → Network filter on `users/directory`, navigate from `/cases/<id
 
 ---
 
-## 15. Done
+## 15. Edit a team member's role (requires backend `PATCH /cases/:id/team/:userId`)
 
-If steps 4–14 pass, Phase 3's success criteria from `plan.md` are met (plus the names-via-directory addendum):
+From a case detail → Overview → Team card → **Manage** (`/cases/:id/team`).
+
+### 15.1 Promote / demote (ADMIN or DETECTIVE)
+
+- Each `LEAD` / `MEMBER` row shows an inline **role dropdown** (instead of a static badge).
+- Change a `MEMBER` to `LEAD`. **Expect** toast "Role changed to LEAD"; the list refetches and the row reflects the new role. DevTools → Network shows `PATCH /cases/<id>/team/<sub>` with body `{"teamRole":"LEAD"}` (the `<sub>` is the Keycloak sub, the same `userId` from `GET /cases/:id/team`).
+- Demote it back to `MEMBER` — same flow.
+- Selecting the role it already has does nothing (no request — idempotent short-circuit).
+
+### 15.2 CREATOR is not editable
+
+- The row whose role is **CREATOR** always shows a static badge, never a dropdown — its role can't be changed, and `CREATOR` is never offered as a target on other rows.
+
+### 15.3 Closed / archived case is read-only
+
+- Close the case (status → CLOSED) and open `/cases/:id/team`. **Expect** a banner "This case is closed — the team is read-only…"; all role dropdowns are gone and **Add member** is hidden.
+- Same for an archived case (banner mentions archived).
+- Backend safety net: if you fire the PATCH directly via curl against a closed case, expect `400 "A closed case cannot be modified"`.
+
+### 15.4 ANALYST is read-only
+
+- As ANALYST, the team list shows static badges only — no dropdowns, no Add member. Firing the PATCH via curl as ANALYST returns `403`.
+
+---
+
+## 16. Done
+
+If steps 4–15 pass, Phase 3's success criteria from `plan.md` are met (plus the names-via-directory and team-role-edit addenda):
 
 - ✅ Detective drives a case OPEN → UNDER_INVESTIGATION → CLOSED.
 - ✅ Admin can reopen; non-admin is blocked client-side and the backend 403s if bypassed.
