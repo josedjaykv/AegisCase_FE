@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data/DataTable';
 import { PaginationBar } from '@/components/data/PaginationBar';
 import { EmptyState } from '@/components/data/EmptyState';
+import { Skeleton } from '@/components/ui/skeleton';
 import { RoleGate } from '@/auth/RoleGate';
 import { useCasesListQuery } from '@/services/cases/cases.queries';
 import type { Case } from '@/services/cases/cases.types';
 import { ArchivedPill, CasePriorityBadge, CaseStatusBadge } from '../components/CaseBadges';
+import { CaseCard } from '../components/CaseCard';
 
 const DEFAULT_LIMIT = 20;
 
@@ -99,20 +101,40 @@ export function CaseListPage() {
         </div>
       ) : (
         <>
-          <DataTable
-            columns={columns}
-            data={query.data?.data}
-            isLoading={query.isLoading}
-            onRowClick={(c) => navigate(`/cases/${c.id}`)}
-            rowClassName={(c) => (c.archived ? 'opacity-60' : undefined)}
-            emptyState={
+          {/* Desktop / tablet: full DataTable */}
+          <div className="hidden md:block">
+            <DataTable
+              columns={columns}
+              data={query.data?.data}
+              isLoading={query.isLoading}
+              onRowClick={(c) => navigate(`/cases/${c.id}`)}
+              rowClassName={(c) => (c.archived ? 'opacity-60' : undefined)}
+              emptyState={
+                <EmptyState
+                  Icon={Briefcase}
+                  title="No cases yet"
+                  description="Create the first investigation."
+                />
+              }
+            />
+          </div>
+
+          {/* Mobile: cards (design-system §11) */}
+          <div className="space-y-3 md:hidden">
+            {query.isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))
+            ) : query.data && query.data.data.length > 0 ? (
+              query.data.data.map((c) => <CaseCard key={c.id} caseItem={c} />)
+            ) : (
               <EmptyState
                 Icon={Briefcase}
                 title="No cases yet"
                 description="Create the first investigation."
               />
-            }
-          />
+            )}
+          </div>
 
           {query.data && query.data.total > 0 && (
             <PaginationBar

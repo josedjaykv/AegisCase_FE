@@ -15,3 +15,4 @@ Per-feature documentation. Each new capability we add gets one self-contained fi
 | ID | Feature | Status | Phase | Doc |
 |----|---------|--------|-------|-----|
 | 002 | Team member role management (edit role in a case team) | ✅ Shipped | 3 | [feature-002-team-role-management.md](./feature-002-team-role-management.md) |
+| 003 | Cases list: card layout on mobile | ✅ Shipped | 3 | [feature-003-cases-mobile-cards.md](./feature-003-cases-mobile-cards.md) |
