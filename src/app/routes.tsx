@@ -16,6 +16,12 @@ import { InvolvedListPage } from '@/features/involved/pages/InvolvedListPage';
 import { InvolvedNewPage } from '@/features/involved/pages/InvolvedNewPage';
 import { InvolvedDetailPage } from '@/features/involved/pages/InvolvedDetailPage';
 import { InvolvedEditPage } from '@/features/involved/pages/InvolvedEditPage';
+import { EvidenceListPage } from '@/features/evidence/pages/EvidenceListPage';
+import { CaseEvidenceListPage } from '@/features/evidence/pages/CaseEvidenceListPage';
+import { EvidenceNewPage } from '@/features/evidence/pages/EvidenceNewPage';
+import { EvidenceDetailPage } from '@/features/evidence/pages/EvidenceDetailPage';
+import { EvidenceEditPage } from '@/features/evidence/pages/EvidenceEditPage';
+import { EvidenceChainPage } from '@/features/evidence/pages/EvidenceChainPage';
 import { env } from '@/lib/env';
 
 export function AppRoutes() {
@@ -49,6 +55,16 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute roles={['ADMIN', 'DETECTIVE']} />}>
             <Route path="/involved/new" element={<InvolvedNewPage />} />
             <Route path="/involved/:id/edit" element={<InvolvedEditPage />} />
+          </Route>
+
+          {/* Evidence: read for all authed roles; register/edit gated to ADMIN+DETECTIVE */}
+          <Route path="/evidence" element={<EvidenceListPage />} />
+          <Route path="/evidence/:id" element={<EvidenceDetailPage />} />
+          <Route path="/evidence/:id/chain" element={<EvidenceChainPage />} />
+          <Route path="/cases/:id/evidence" element={<CaseEvidenceListPage />} />
+          <Route element={<ProtectedRoute roles={['ADMIN', 'DETECTIVE']} />}>
+            <Route path="/cases/:id/evidence/new" element={<EvidenceNewPage />} />
+            <Route path="/evidence/:id/edit" element={<EvidenceEditPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

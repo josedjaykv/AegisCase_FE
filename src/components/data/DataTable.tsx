@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 interface DataTableProps<T> {
   columns: ColumnDef<T, unknown>[];
   data: T[] | undefined;
-  isLoading?: boolean;
+  isLoading?: boolean | undefined;
   emptyState?: ReactNode;
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string | undefined;
