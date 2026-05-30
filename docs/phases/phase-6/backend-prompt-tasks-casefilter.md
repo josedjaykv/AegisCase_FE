@@ -52,6 +52,7 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 - `BACKEND_INVESTIGATION_REPORT.md` §5.7 — add `caseId?` to the `GET /tasks` query params.
 - `docs/API_REFERENCE.md` — note the new filter.
+- **New feature documentation: Feature 005** 
 
 ## Out of scope
 
