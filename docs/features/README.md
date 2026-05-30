@@ -17,3 +17,5 @@ Per-feature documentation. Each new capability we add gets one self-contained fi
 | 002 | Team member role management (edit role in a case team) | ✅ Shipped | 3 | [feature-002-team-role-management.md](./feature-002-team-role-management.md) |
 | 003 | Cases list: card layout on mobile | ✅ Shipped | 3 | [feature-003-cases-mobile-cards.md](./feature-003-cases-mobile-cards.md) |
 | 004 | Case ↔ involved-person link management (roster, edit, unlink, hide-linked) | ✅ Shipped | 4 | [feature-004-case-involved-link-management.md](./feature-004-case-involved-link-management.md) |
+| 005 | Collapsible sidebar, themed scrollbars & full-height Kanban | ✅ Shipped | 6 | [feature-005-sidebar-collapse-and-themed-scroll.md](./feature-005-sidebar-collapse-and-themed-scroll.md) |
+| 006 | Tasks board: case & assignee filters + create-with-case | ✅ Shipped | 6 | [feature-006-tasks-board-filters-and-global-create.md](./feature-006-tasks-board-filters-and-global-create.md) |

@@ -11,7 +11,7 @@ export const TabsList = forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'inline-flex w-full items-center gap-1 overflow-x-auto border-b border-border',
+      'scrollbar-thin inline-flex w-full items-center gap-1 overflow-x-auto border-b border-border',
       className,
     )}
     {...props}

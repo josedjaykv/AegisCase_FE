@@ -86,7 +86,9 @@ Archived entities (`archived: true` on cases/evidence, `deleted: true` on media)
 - **Spacing scale:** Tailwind default 4px base; UI uses primarily `2, 3, 4, 6, 8` (8/12/16/24/32 px).
 - **Radii:** `--radius: 0.5rem` (8px) global; inputs/buttons `rounded-md`, cards `rounded-lg`, badges `rounded-full`.
 - **Elevation:** minimal — `shadow-sm` for cards, `shadow-md` for dialogs/popovers, no shadows on lists or tables. Borders carry structure, not shadows.
-- **Layout grid:** sidebar `w-64` (collapsible to `w-16`), top bar `h-14`, content max-width `max-w-7xl` with `px-6` gutters.
+- **Layout grid:** sidebar `w-64` (collapsible to icon-only `w-16`), top bar `h-14`, content max-width `max-w-7xl` with `px-6` gutters.
+- **Sidebar collapse:** desktop sidebar toggles between `w-64` (labels) and `w-16` (icon-only, labels hidden, `title`/`aria-label` tooltips) via `useUiStore.sidebarOpen` (persisted). Toggle is reachable from every page (top-bar `PanelLeft` button) and from the sidebar's own footer button.
+- **Scrollbars:** never ship the raw browser scrollbar on app scroll regions. Use the `.scrollbar-thin` utility (`styles/globals.css`) — an 8px themed bar whose thumb is the `--border` token (→ `--muted-foreground` on hover) over a transparent track. Applied to the Kanban board (both axes), `DataTable` overflow, and the tab scroller.
 
 ## 5. Density
 
