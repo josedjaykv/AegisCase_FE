@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface EmptyStateProps {
   Icon?: LucideIcon;
   title: string;
-  description?: string;
+  description?: string | undefined;
   action?: ReactNode;
   className?: string;
 }

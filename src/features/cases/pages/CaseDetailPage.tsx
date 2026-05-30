@@ -14,9 +14,11 @@ import { ArchivedPill, CasePriorityBadge, CaseStatusBadge } from '../components/
 import { CaseStatusPicker } from '../components/CaseStatusPicker';
 import { ArchiveButton } from '../components/ArchiveButton';
 import { TeamMemberList } from '../components/TeamMemberList';
+import { useEvidenceListQuery } from '@/services/evidence/evidence.queries';
+import { EvidenceList } from '@/features/evidence/components/EvidenceList';
+import { Plus } from 'lucide-react';
 
 const PLACEHOLDER_TABS = [
-  { value: 'evidence', label: 'Evidence', phase: 'Phase 5' },
   { value: 'tasks', label: 'Tasks', phase: 'Phase 6' },
   { value: 'audit', label: 'Audit', phase: 'Phase 8' },
   { value: 'media', label: 'Media', phase: 'Phase 7' },
@@ -27,6 +29,7 @@ export function CaseDetailPage() {
   const query = useCaseQuery(id);
   const teamQuery = useCaseTeamQuery(id);
   const involvedQuery = useCaseInvolvedQuery(id);
+  const evidenceQuery = useEvidenceListQuery({ page: 1, limit: 100, caseId: id });
   const headerSubs = query.data
     ? [query.data.leaderUserId, query.data.createdByUserId]
     : [];
@@ -137,6 +140,7 @@ export function CaseDetailPage() {
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="evidence">Evidence</TabsTrigger>
           <TabsTrigger value="involved">Involved</TabsTrigger>
           {PLACEHOLDER_TABS.map((t) => (
             <TabsTrigger key={t.value} value={t.value}>
@@ -172,6 +176,49 @@ export function CaseDetailPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="evidence">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
+              <div>
+                <CardTitle className="text-base">Evidence</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Items registered for this case.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button asChild variant="ghost" size="sm">
+                  <Link to={`/cases/${c.id}/evidence`}>View all</Link>
+                </Button>
+                {!c.archived && (
+                  <RoleGate roles={['ADMIN', 'DETECTIVE']}>
+                    <Button asChild size="sm">
+                      <Link to={`/cases/${c.id}/evidence/new`}>
+                        <Plus className="mr-2 h-4 w-4" /> Register
+                      </Link>
+                    </Button>
+                  </RoleGate>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {evidenceQuery.isError ? (
+                <div
+                  role="alert"
+                  className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                >
+                  Failed to load evidence.
+                </div>
+              ) : (
+                <EvidenceList
+                  rows={evidenceQuery.data?.data}
+                  isLoading={evidenceQuery.isLoading}
+                  emptyHint="Register the first piece of evidence for this case."
+                />
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="involved">
