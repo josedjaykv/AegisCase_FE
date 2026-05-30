@@ -6,7 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoleGate } from '@/auth/RoleGate';
 import { useCaseQuery, useCaseTeamQuery } from '@/services/cases/cases.queries';
+import { useCaseInvolvedQuery } from '@/services/involved/involved.queries';
 import { useDisplayNames } from '@/services/users/users.queries';
+import { LinkToCaseDialog } from '@/features/involved/components/LinkToCaseDialog';
+import { CaseInvolvedList } from '@/features/involved/components/CaseInvolvedList';
 import { ArchivedPill, CasePriorityBadge, CaseStatusBadge } from '../components/CaseBadges';
 import { CaseStatusPicker } from '../components/CaseStatusPicker';
 import { ArchiveButton } from '../components/ArchiveButton';
@@ -15,7 +18,6 @@ import { TeamMemberList } from '../components/TeamMemberList';
 const PLACEHOLDER_TABS = [
   { value: 'evidence', label: 'Evidence', phase: 'Phase 5' },
   { value: 'tasks', label: 'Tasks', phase: 'Phase 6' },
-  { value: 'involved', label: 'Involved', phase: 'Phase 4' },
   { value: 'audit', label: 'Audit', phase: 'Phase 8' },
   { value: 'media', label: 'Media', phase: 'Phase 7' },
 ] as const;
@@ -24,6 +26,7 @@ export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const query = useCaseQuery(id);
   const teamQuery = useCaseTeamQuery(id);
+  const involvedQuery = useCaseInvolvedQuery(id);
   const headerSubs = query.data
     ? [query.data.leaderUserId, query.data.createdByUserId]
     : [];
@@ -134,6 +137,7 @@ export function CaseDetailPage() {
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="involved">Involved</TabsTrigger>
           {PLACEHOLDER_TABS.map((t) => (
             <TabsTrigger key={t.value} value={t.value}>
               {t.label}
@@ -168,6 +172,46 @@ export function CaseDetailPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="involved">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
+              <div>
+                <CardTitle className="text-base">Involved persons</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  People linked to this case.
+                </p>
+              </div>
+              {!c.archived && (
+                <RoleGate roles={['ADMIN', 'DETECTIVE']}>
+                  <LinkToCaseDialog
+                    mode="pick-person"
+                    caseId={c.id}
+                    triggerLabel="Link person"
+                    excludePersonIds={involvedQuery.data?.map((r) => r.involvedPersonId)}
+                  />
+                </RoleGate>
+              )}
+            </CardHeader>
+            <CardContent>
+              {involvedQuery.isError ? (
+                <div
+                  role="alert"
+                  className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                >
+                  Failed to load involved persons.
+                </div>
+              ) : (
+                <CaseInvolvedList
+                  caseId={c.id}
+                  rows={involvedQuery.data}
+                  isLoading={involvedQuery.isLoading}
+                  manageable={!c.archived}
+                />
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {PLACEHOLDER_TABS.map((t) => (
