@@ -1,13 +1,16 @@
 import {
   keepPreviousData,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { casesApi } from './cases.api';
 import { casesQueryKeys } from './cases.queryKeys';
 import type {
   AddTeamMemberInput,
+  Case,
   CasesListParams,
   ChangeStatusInput,
   CreateCaseInput,
@@ -40,6 +43,41 @@ export function useCaseQuery(id: string | undefined) {
     refetchInterval: ONE_MIN,
     refetchIntervalInBackground: false,
   });
+}
+
+/**
+ * Resolve a batch of case ids into their summaries (code, title, status…),
+ * reusing the per-case detail cache. Returns a `summary(id)` lookup that is
+ * `null` until the case loads — callers should fall back to the id meanwhile.
+ * Used to render case titles where only a caseId is available (e.g. a
+ * person's linked-cases list).
+ */
+export function useCaseSummaries(caseIds: string[]) {
+  const unique = useMemo(
+    () => Array.from(new Set(caseIds.filter(Boolean))).sort(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [caseIds.join('|')],
+  );
+
+  const results = useQueries({
+    queries: unique.map((id) => ({
+      queryKey: casesQueryKeys.detail(id),
+      queryFn: () => casesApi.getById(id),
+      staleTime: THIRTY_SEC,
+      gcTime: FIVE_MIN,
+    })),
+  });
+
+  const byId = useMemo(() => {
+    const m = new Map<string, Case>();
+    results.forEach((r, i) => {
+      const id = unique[i];
+      if (id && r.data) m.set(id, r.data);
+    });
+    return m;
+  }, [results, unique]);
+
+  return { summary: (id: string): Case | null => byId.get(id) ?? null };
 }
 
 export function useCaseTeamQuery(id: string | undefined) {
