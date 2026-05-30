@@ -85,6 +85,7 @@ curl -s -H "Authorization: Bearer $ADMIN" "http://localhost:3000/evidence/<id>/c
 
 - Note the fix in `BACKEND_INVESTIGATION_REPORT.md` §3.6 / §5.6 if the view semantics change (e.g. idempotent self-view).
 - If you adopt #4 (skip duplicate self-views), document the new behavior so the frontend can rely on it.
+- Document this fix as fix 001 in /docs/fixes, do it as we do it with the feature explaining the erro and the solution
 
 ## Out of scope
 
