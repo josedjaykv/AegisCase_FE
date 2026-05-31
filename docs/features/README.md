@@ -21,3 +21,5 @@ Per-feature documentation. Each new capability we add gets one self-contained fi
 | 006 | Tasks board: case & assignee filters + create-with-case | ✅ Shipped | 6 | [feature-006-tasks-board-filters-and-global-create.md](./feature-006-tasks-board-filters-and-global-create.md) |
 | 007 | Evidence media gated by chain of custody (download = take custody) | ✅ Shipped | 7 | [feature-007-evidence-media-custody-gate.md](./feature-007-evidence-media-custody-gate.md) |
 | 008 | Image viewer inspection tools (zoom / rotate / pan / brightness-contrast) | ✅ Shipped | 7 | [feature-008-image-viewer-tools.md](./feature-008-image-viewer-tools.md) |
+| 009 | Evidence title field (short label + description) | ✅ Shipped | 5 | [feature-009-evidence-title.md](./feature-009-evidence-title.md) |
+| 010 | Editing evidence requires custody (take custody to edit) | ✅ Shipped (FE) · ⏳ backend | 5 | [feature-010-evidence-edit-requires-custody.md](./feature-010-evidence-edit-requires-custody.md) |
