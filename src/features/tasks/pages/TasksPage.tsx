@@ -5,6 +5,7 @@ import { RoleGate } from '@/auth/RoleGate';
 import { TasksView } from '../components/TasksView';
 
 export function TasksPage() {
+  //throw new Error('Boom');
   return (
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
