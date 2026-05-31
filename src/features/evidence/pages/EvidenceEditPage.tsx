@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { isNormalizedApiError } from '@/services/http/errors';
 import {
   readEvidenceFromCache,
+  useEvidenceSummaryQuery,
   useTakeCustodyMutation,
   useViewedEvidence,
 } from '@/services/evidence/evidence.queries';
@@ -17,7 +18,8 @@ export function EvidenceEditPage() {
   const qc = useQueryClient();
   const viewed = useViewedEvidence(id).data;
   const cached = id ? readEvidenceFromCache(qc, id) : undefined;
-  const e = viewed ?? cached;
+  const summaryQuery = useEvidenceSummaryQuery(id, !viewed && !cached);
+  const e = viewed ?? cached ?? summaryQuery.data;
 
   const userSub = useAuthStore((s) => s.user?.sub);
   const takeCustody = useTakeCustodyMutation(id ?? '');
@@ -42,10 +44,16 @@ export function EvidenceEditPage() {
       </Link>
 
       {!e ? (
-        <div className="rounded-md border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
-          Open this evidence from its case list first, then edit — we don’t load the full record here
-          to avoid recording you as the custodian.
-        </div>
+        summaryQuery.isLoading ? (
+          <div className="rounded-md border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+            Loading evidence…
+          </div>
+        ) : (
+          <div className="rounded-md border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+            Open this evidence from its case list first, then edit — we don’t load the full record
+            here to avoid recording you as the custodian.
+          </div>
+        )
       ) : e.archived ? (
         <div
           role="alert"

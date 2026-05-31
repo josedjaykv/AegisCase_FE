@@ -23,3 +23,4 @@ Per-feature documentation. Each new capability we add gets one self-contained fi
 | 008 | Image viewer inspection tools (zoom / rotate / pan / brightness-contrast) | ✅ Shipped | 7 | [feature-008-image-viewer-tools.md](./feature-008-image-viewer-tools.md) |
 | 009 | Evidence title field (short label + description) | ✅ Shipped | 5 | [feature-009-evidence-title.md](./feature-009-evidence-title.md) |
 | 010 | Editing evidence requires custody (take custody to edit) | ✅ Shipped (FE) · ⏳ backend | 5 | [feature-010-evidence-edit-requires-custody.md](./feature-010-evidence-edit-requires-custody.md) |
+| 011 | Read-only evidence summary on reload / deep-link | ✅ Shipped (FE) · ⏳ backend | 5 | [feature-011-evidence-readonly-summary.md](./feature-011-evidence-readonly-summary.md) |

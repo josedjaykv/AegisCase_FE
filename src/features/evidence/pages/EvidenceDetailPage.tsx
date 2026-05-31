@@ -13,6 +13,7 @@ import { isNormalizedApiError } from '@/services/http/errors';
 import {
   readEvidenceFromCache,
   useEvidenceChainQuery,
+  useEvidenceSummaryQuery,
   useTakeCustodyMutation,
   useViewedEvidence,
 } from '@/services/evidence/evidence.queries';
@@ -37,7 +38,10 @@ export function EvidenceDetailPage() {
   const viewed = useViewedEvidence(id).data;
   // Read-only summary from any cached list (no network, no side effect).
   const cached = id ? readEvidenceFromCache(qc, id) : undefined;
-  const e = viewed ?? cached;
+  // Fallback for a fresh load / deep-link (no list cached): a read-only summary
+  // endpoint with NO custody side effect. Only fires when nothing is cached.
+  const summaryQuery = useEvidenceSummaryQuery(id, !viewed && !cached);
+  const e = viewed ?? cached ?? summaryQuery.data;
 
   // Chain of custody is the read-only endpoint — safe to fetch automatically.
   const chainQuery = useEvidenceChainQuery(id);
@@ -98,6 +102,8 @@ export function EvidenceDetailPage() {
                 <dd>{formatDateTime(e.createdAt)}</dd>
               </div>
             </dl>
+          ) : summaryQuery.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading summary…</p>
           ) : (
             <p className="text-sm text-muted-foreground">
               A read-only summary isn’t cached for this item. You can inspect its chain of custody

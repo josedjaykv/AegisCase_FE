@@ -32,6 +32,16 @@ export const evidenceApi = {
     return data;
   },
 
+  /**
+   * Read-only single-evidence summary — NO custody side effect (unlike
+   * viewWithSideEffect / GET /evidence/:id). Used to populate the detail page on
+   * a fresh load / deep-link when no list is cached. Backend: GET /evidence/:id/summary.
+   */
+  async getSummary(id: string): Promise<Evidence> {
+    const { data } = await httpClient.get<Evidence>(`/evidence/${id}/summary`);
+    return data;
+  },
+
   async getChain(id: string): Promise<ChainOfCustody[]> {
     const { data } = await httpClient.get<ChainOfCustody[]>(`/evidence/${id}/chain-of-custody`);
     return data;
