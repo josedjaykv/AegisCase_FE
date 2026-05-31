@@ -52,6 +52,16 @@ export const evidenceApi = {
     return data;
   },
 
+  /**
+   * Self-assign custody to the caller (all roles). Used before downloading an
+   * evidence file when the caller is not the current custodian. The backend sets
+   * the chain-of-custody reason (e.g. "Accessed evidence file").
+   */
+  async takeCustody(id: string): Promise<Evidence> {
+    const { data } = await httpClient.patch<Evidence>(`/evidence/${id}/take-custody`);
+    return data;
+  },
+
   async archive(id: string): Promise<Evidence> {
     const { data } = await httpClient.patch<Evidence>(`/evidence/${id}/archive`);
     return data;

@@ -12,6 +12,7 @@ import { formatDateTime } from '@/lib/date';
 import { TaskPriorityBadge } from '../components/TaskBadges';
 import { TaskStatusPicker } from '../components/TaskStatusPicker';
 import { daysOverdue, isOwnTask, isTerminal } from '../taskRules';
+import { MediaGallery } from '@/features/media/components/MediaGallery';
 
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -115,6 +116,16 @@ export function TaskDetailPage() {
               <dd>{formatDateTime(t.createdAt)}</dd>
             </div>
           </dl>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Media</CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Files attached to this task.</p>
+        </CardHeader>
+        <CardContent>
+          <MediaGallery entityType="TASK" entityId={t.id} readOnly={isTerminal(t.status)} />
         </CardContent>
       </Card>
     </section>

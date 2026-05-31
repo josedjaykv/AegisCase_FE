@@ -19,3 +19,4 @@ Per-feature documentation. Each new capability we add gets one self-contained fi
 | 004 | Case ↔ involved-person link management (roster, edit, unlink, hide-linked) | ✅ Shipped | 4 | [feature-004-case-involved-link-management.md](./feature-004-case-involved-link-management.md) |
 | 005 | Collapsible sidebar, themed scrollbars & full-height Kanban | ✅ Shipped | 6 | [feature-005-sidebar-collapse-and-themed-scroll.md](./feature-005-sidebar-collapse-and-themed-scroll.md) |
 | 006 | Tasks board: case & assignee filters + create-with-case | ✅ Shipped | 6 | [feature-006-tasks-board-filters-and-global-create.md](./feature-006-tasks-board-filters-and-global-create.md) |
+| 007 | Evidence media gated by chain of custody (download = take custody) | ✅ Shipped | 7 | [feature-007-evidence-media-custody-gate.md](./feature-007-evidence-media-custody-gate.md) |

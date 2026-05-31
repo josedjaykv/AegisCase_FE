@@ -10,6 +10,7 @@ import {
 } from '@/services/involved/involved.queries';
 import { CaseLinksList } from '../components/CaseLinksList';
 import { LinkToCaseDialog } from '../components/LinkToCaseDialog';
+import { MediaGallery } from '@/features/media/components/MediaGallery';
 
 export function InvolvedDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -116,6 +117,16 @@ export function InvolvedDetailPage() {
               personLabel={name}
             />
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Media</CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Files attached to this person.</p>
+        </CardHeader>
+        <CardContent>
+          <MediaGallery entityType="INVOLVED_PERSON" entityId={p.id} />
         </CardContent>
       </Card>
     </section>
