@@ -17,11 +17,8 @@ import { TeamMemberList } from '../components/TeamMemberList';
 import { useEvidenceListQuery } from '@/services/evidence/evidence.queries';
 import { EvidenceList } from '@/features/evidence/components/EvidenceList';
 import { MediaGallery } from '@/features/media/components/MediaGallery';
+import { EntityAuditPanel } from '@/features/audit/components/EntityAuditPanel';
 import { Plus } from 'lucide-react';
-
-const PLACEHOLDER_TABS = [
-  { value: 'audit', label: 'Audit', phase: 'Phase 8' },
-] as const;
 
 export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -143,11 +140,9 @@ export function CaseDetailPage() {
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="involved">Involved</TabsTrigger>
           <TabsTrigger value="media">Media</TabsTrigger>
-          {PLACEHOLDER_TABS.map((t) => (
-            <TabsTrigger key={t.value} value={t.value}>
-              {t.label}
-            </TabsTrigger>
-          ))}
+          <RoleGate roles={['ADMIN']}>
+            <TabsTrigger value="audit">Audit</TabsTrigger>
+          </RoleGate>
         </TabsList>
 
         <TabsContent value="overview">
@@ -313,13 +308,21 @@ export function CaseDetailPage() {
           </Card>
         </TabsContent>
 
-        {PLACEHOLDER_TABS.map((t) => (
-          <TabsContent key={t.value} value={t.value}>
-            <div className="rounded-lg border border-dashed border-border bg-card/40 p-8 text-center text-sm text-muted-foreground">
-              {t.label} lands in {t.phase}.
-            </div>
+        <RoleGate roles={['ADMIN']}>
+          <TabsContent value="audit">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Activity</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Chronological audit trail for this case.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <EntityAuditPanel entityType="Case" entityId={c.id} />
+              </CardContent>
+            </Card>
           </TabsContent>
-        ))}
+        </RoleGate>
       </Tabs>
     </section>
   );

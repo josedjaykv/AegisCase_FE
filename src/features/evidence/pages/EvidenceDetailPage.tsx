@@ -20,6 +20,7 @@ import { TransferCustodyDialog } from '../components/TransferCustodyDialog';
 import { EvidenceArchiveButton } from '../components/EvidenceArchiveButton';
 import { CustodyChainTimeline } from '../components/CustodyChainTimeline';
 import { MediaGallery } from '@/features/media/components/MediaGallery';
+import { EntityAuditPanel } from '@/features/audit/components/EntityAuditPanel';
 
 export function EvidenceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -171,6 +172,18 @@ export function EvidenceDetailPage() {
           />
         </CardContent>
       </Card>
+
+      <RoleGate roles={['ADMIN']}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Activity</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">Audit trail for this evidence.</p>
+          </CardHeader>
+          <CardContent>
+            <EntityAuditPanel entityType="Evidence" entityId={id} />
+          </CardContent>
+        </Card>
+      </RoleGate>
 
       {id && (
         <EvidenceViewDialog open={viewOpen} onOpenChange={setViewOpen} evidenceId={id} />

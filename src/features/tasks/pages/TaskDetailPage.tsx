@@ -13,6 +13,8 @@ import { TaskPriorityBadge } from '../components/TaskBadges';
 import { TaskStatusPicker } from '../components/TaskStatusPicker';
 import { daysOverdue, isOwnTask, isTerminal } from '../taskRules';
 import { MediaGallery } from '@/features/media/components/MediaGallery';
+import { EntityAuditPanel } from '@/features/audit/components/EntityAuditPanel';
+import { RoleGate } from '@/auth/RoleGate';
 
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -128,6 +130,18 @@ export function TaskDetailPage() {
           <MediaGallery entityType="TASK" entityId={t.id} readOnly={isTerminal(t.status)} />
         </CardContent>
       </Card>
+
+      <RoleGate roles={['ADMIN']}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Activity</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">Audit trail for this task.</p>
+          </CardHeader>
+          <CardContent>
+            <EntityAuditPanel entityType="Task" entityId={t.id} />
+          </CardContent>
+        </Card>
+      </RoleGate>
     </section>
   );
 }

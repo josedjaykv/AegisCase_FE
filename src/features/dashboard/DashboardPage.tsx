@@ -1,6 +1,8 @@
 import { useAuthStore } from '@/stores/auth.store';
 import { Badge } from '@/components/ui/badge';
 import { MyTasksWidget } from '@/features/tasks/components/MyTasksWidget';
+import { AuditFeed } from '@/features/audit/components/AuditFeed';
+import { RoleGate } from '@/auth/RoleGate';
 
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -16,6 +18,12 @@ export function DashboardPage() {
         <div className="sm:col-span-2 lg:row-span-2">
           <MyTasksWidget />
         </div>
+
+        <RoleGate roles={['ADMIN']}>
+          <div className="lg:row-span-2">
+            <AuditFeed />
+          </div>
+        </RoleGate>
 
         <article className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-medium text-muted-foreground">Current session</h2>
