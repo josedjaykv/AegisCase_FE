@@ -30,6 +30,8 @@ export interface Evidence {
   id: string;
   caseId: string;
   evidenceType: EvidenceType;
+  /** Short label, e.g. "Testimonio de Juanito". Nullable for rows created before this field existed. */
+  title?: string | null;
   description: string;
   evidenceStatus: EvidenceStatus;
   /** Keycloak sub of the current custodian. */
@@ -46,12 +48,14 @@ export interface Evidence {
 export interface CreateEvidenceInput {
   caseId: string;
   evidenceType: EvidenceType;
+  title: string;
   description: string;
   currentCustodianId?: string;
 }
 
 export interface UpdateEvidenceInput {
   evidenceType?: EvidenceType;
+  title?: string;
   description?: string;
   evidenceStatus?: EvidenceStatus;
 }
