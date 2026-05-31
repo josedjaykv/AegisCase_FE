@@ -7,6 +7,10 @@ Phase 9 is the **cross-cutting reliability/polish** layer over everything shippe
 polling cheap, make returning to the tab feel live, add production error visibility, and lock the
 critical flows behind a deterministic E2E suite. **No backend changes.**
 
+> 📘 **Para entender el por qué/cómo/beneficios** de cada pieza en lenguaje sencillo (y por qué
+> conviene hacerlo en todo proyecto y en AegisCase en particular), ver
+> [`phase-9-explained.md`](phase-9-explained.md).
+
 ---
 
 ## What was already in place (verified, not rebuilt)
