@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { json, login } from './support/mocks';
+import { expectNoA11yViolations } from './support/a11y';
 
 /**
  * The Phase 5 guardrail: `GET /evidence/:id` MUTATES the chain of custody, so it
@@ -56,6 +57,9 @@ test('reads via summary + chain on load; mutating GET only on confirm', async ({
   // is unique to the summary having loaded.
   await expect(page.getByText('A statement from a witness.')).toBeVisible();
   expect(viewCalls).toBe(0);
+
+  // A11y: the Detail archetype (header, badges, warning box, chain card) is clean.
+  await expectNoA11yViolations(page, 'evidence detail');
 
   // Open the view dialog and confirm.
   await page.getByRole('button', { name: /View & take custody/i }).click();
