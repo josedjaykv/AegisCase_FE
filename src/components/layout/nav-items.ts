@@ -27,7 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/evidence', label: 'Evidence', Icon: FileSearch, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
   { to: '/involved', label: 'Involved', Icon: UsersRound, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
   { to: '/media', label: 'Media', Icon: ImageIcon, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
-  { to: '/audit', label: 'Audit', Icon: History, roles: ['ADMIN', 'DETECTIVE', 'ANALYST'] },
+  { to: '/audit', label: 'Audit', Icon: History, roles: ['ADMIN'] },
   { to: '/users', label: 'Users', Icon: Users, roles: ['ADMIN'] },
   {
     to: '/styleguide',

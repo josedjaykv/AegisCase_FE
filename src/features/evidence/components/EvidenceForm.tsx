@@ -57,6 +57,7 @@ export function EvidenceForm({ mode, caseId, initial }: EvidenceFormProps) {
     resolver: zodResolver(CreateEvidenceSchema) as never,
     defaultValues: {
       evidenceType: initial?.evidenceType ?? 'PHYSICAL',
+      title: initial?.title ?? '',
       description: initial?.description ?? '',
     },
   });
@@ -79,6 +80,7 @@ export function EvidenceForm({ mode, caseId, initial }: EvidenceFormProps) {
         const created = await createMut.mutateAsync({
           caseId,
           evidenceType: values.evidenceType,
+          title: values.title,
           description: values.description,
           ...(custodian ? { currentCustodianId: custodian.sub } : {}),
         });
@@ -87,6 +89,7 @@ export function EvidenceForm({ mode, caseId, initial }: EvidenceFormProps) {
       } else if (initial) {
         const updated = await updateMut.mutateAsync({
           evidenceType: values.evidenceType,
+          title: values.title,
           description: values.description,
         });
         toast.success('Evidence updated');
@@ -100,7 +103,7 @@ export function EvidenceForm({ mode, caseId, initial }: EvidenceFormProps) {
       if (err.status === 400 && err.fieldErrors) {
         let mapped = 0;
         for (const [field, messages] of Object.entries(err.fieldErrors)) {
-          if (field === 'evidenceType' || field === 'description') {
+          if (field === 'evidenceType' || field === 'title' || field === 'description') {
             form.setError(field, { type: 'server', message: messages[0] ?? 'Invalid value' });
             mapped += 1;
           }
@@ -122,6 +125,25 @@ export function EvidenceForm({ mode, caseId, initial }: EvidenceFormProps) {
             <CardTitle>{mode === 'create' ? 'Register evidence' : 'Edit evidence'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <input
+                      {...field}
+                      maxLength={200}
+                      className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      placeholder="Descriptive title for this evidence"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="evidenceType"

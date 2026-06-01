@@ -27,6 +27,7 @@ import { CaseTasksPage } from '@/features/tasks/pages/CaseTasksPage';
 import { TaskNewPage } from '@/features/tasks/pages/TaskNewPage';
 import { TaskDetailPage } from '@/features/tasks/pages/TaskDetailPage';
 import { TaskEditPage } from '@/features/tasks/pages/TaskEditPage';
+import { AuditPage } from '@/features/audit/pages/AuditPage';
 import { env } from '@/lib/env';
 
 export function AppRoutes() {
@@ -81,6 +82,11 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute roles={['ADMIN', 'DETECTIVE']} />}>
             <Route path="/tasks/new" element={<TaskNewPage />} />
             <Route path="/cases/:id/tasks/new" element={<TaskNewPage />} />
+          </Route>
+
+          {/* Audit: ADMIN-only (high-volume; FE-restricted) */}
+          <Route element={<ProtectedRoute roles={['ADMIN']} />}>
+            <Route path="/audit" element={<AuditPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

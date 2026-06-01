@@ -46,6 +46,24 @@ export function useEvidenceChainQuery(id: string | undefined) {
 }
 
 /**
+ * Read-only evidence summary — safe to auto-fetch (NO custody side effect),
+ * used as a fallback for the detail/edit pages on a fresh load or deep-link when
+ * no list is cached. `retry: false` so that, if the backend hasn't shipped
+ * `GET /evidence/:id/summary` yet, we fail fast and fall back to the existing
+ * "summary not cached" message instead of hammering a 404.
+ */
+export function useEvidenceSummaryQuery(id: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: evidenceQueryKeys.summary(id ?? ''),
+    queryFn: () => evidenceApi.getSummary(id as string),
+    enabled: !!id && enabled,
+    staleTime: THIRTY_SEC,
+    gcTime: FIVE_MIN,
+    retry: false,
+  });
+}
+
+/**
  * The side-effecting view. Modeled as a MUTATION on purpose so it can never
  * auto-run from a component render — only an explicit user action (the
  * <EvidenceViewDialog> confirm) may trigger it. On success it seeds the detail

@@ -71,7 +71,9 @@ export const PERMISSIONS: Record<PermissionAction, readonly Role[]> = {
   'media.read': ['ADMIN', 'DETECTIVE', 'ANALYST'],
   'media.delete': ['ADMIN'],
 
-  'audit.read': ['ADMIN', 'DETECTIVE', 'ANALYST'],
+  // FE-only restriction: audit is high-volume and reserved for ADMIN, even
+  // though the backend controller still allows all three roles to read it.
+  'audit.read': ['ADMIN'],
 };
 
 export function roleCan(role: Role | null | undefined, action: PermissionAction): boolean {

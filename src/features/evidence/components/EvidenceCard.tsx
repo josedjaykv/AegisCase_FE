@@ -21,7 +21,7 @@ export function EvidenceCard({ evidence: e, custodianName }: EvidenceCardProps) 
     >
       <div className="flex items-start justify-between gap-2">
         <p className="line-clamp-2 text-sm font-medium leading-tight text-foreground">
-          {e.description}
+          {e.title?.trim() ? e.title : e.description}
         </p>
         {e.archived && <ArchivedPill />}
       </div>

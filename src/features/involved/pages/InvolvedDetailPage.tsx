@@ -11,6 +11,7 @@ import {
 import { CaseLinksList } from '../components/CaseLinksList';
 import { LinkToCaseDialog } from '../components/LinkToCaseDialog';
 import { MediaGallery } from '@/features/media/components/MediaGallery';
+import { EntityAuditPanel } from '@/features/audit/components/EntityAuditPanel';
 
 export function InvolvedDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -129,6 +130,18 @@ export function InvolvedDetailPage() {
           <MediaGallery entityType="INVOLVED_PERSON" entityId={p.id} />
         </CardContent>
       </Card>
+
+      <RoleGate roles={['ADMIN']}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Activity</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">Audit trail for this person.</p>
+          </CardHeader>
+          <CardContent>
+            <EntityAuditPanel entityType="InvolvedPerson" entityId={p.id} />
+          </CardContent>
+        </Card>
+      </RoleGate>
     </section>
   );
 }

@@ -33,11 +33,13 @@ export function EvidenceList({ rows, isLoading, emptyHint }: EvidenceListProps) 
         cell: ({ row }) => <EvidenceTypeBadge type={row.original.evidenceType} />,
       },
       {
-        header: 'Description',
-        accessorKey: 'description',
+        header: 'Title',
+        accessorKey: 'title',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <span className="line-clamp-1 max-w-md text-foreground">{row.original.description}</span>
+            <span className="line-clamp-1 max-w-md text-foreground">
+              {row.original.title?.trim() ? row.original.title : row.original.description}
+            </span>
             {row.original.archived && <ArchivedPill />}
           </div>
         ),

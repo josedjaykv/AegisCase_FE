@@ -136,7 +136,7 @@ docs/
 | 5 — Evidence + COC | ✅ Completed | [plan](docs/phases/phase-5/plan.md) | [report](docs/phases/phase-5/implementation.md) | [guide](docs/phases/phase-5/manual-testing.md) |
 | 6 — Tasks + Kanban | ✅ Completed | [plan](docs/phases/phase-6/plan.md) | [report](docs/phases/phase-6/implementation.md) | [guide](docs/phases/phase-6/manual-testing.md) |
 | 7 — Media | ✅ Completed | [plan](docs/phases/phase-7/plan.md) | [report](docs/phases/phase-7/implementation.md) | [guide](docs/phases/phase-7/manual-testing.md) |
-| 8 — Audit & feeds | ⬜ Not started | [plan](docs/phases/phase-8/plan.md) | — | — |
+| 8 — Audit & feeds | ✅ Completed | [plan](docs/phases/phase-8/plan.md) | [report](docs/phases/phase-8/implementation.md) | [guide](docs/phases/phase-8/manual-testing.md) |
 | 9 — Polling, polish, E2E | ⬜ Not started | [plan](docs/phases/phase-9/plan.md) | — | — |
 | 10 — Perf, a11y, hardening | ⬜ Not started | [plan](docs/phases/phase-10/plan.md) | — | — |
 

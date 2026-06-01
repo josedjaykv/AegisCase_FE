@@ -86,9 +86,11 @@ app — types, hooks, components — is camelCase end-to-end (`entityType`, `ent
 - `components/MediaThumbnail.tsx` — real preview for image tiles: presigns an `inline` URL
   (`useMediaInlineUrlQuery`) and renders `<img>`; non-images and load failures render a type icon.
 - `components/MediaViewerDialog.tsx` — in-app viewer modal. Renders by `mediaKind`:
-  image → `<img>`, video → `<video controls>`, audio → `<audio controls>`, pdf/text → `<iframe>`
-  (browser-native). **Office/other** → a "Preview not available — download to open" fallback. Always
-  offers a **Download** button. Presigns an `inline` URL only when open and previewable.
+  image → `<ImageViewer>` (zoom/rotate/pan/adjust — see
+  [Feature 008](../../features/feature-008-image-viewer-tools.md)), video → `<video controls>`,
+  audio → `<audio controls>`, pdf/text → `<iframe>` (browser-native). **Office/other** → a "Preview
+  not available — download to open" fallback. Always offers a **Download** button. Presigns an
+  `inline` URL only when open and previewable.
 - `components/MediaDeleteButton.tsx` — ADMIN-only (`media.delete`), `<ConfirmDialog>` double-confirm,
   `useDeleteMediaMutation`. Mirrors `EvidenceArchiveButton`.
 

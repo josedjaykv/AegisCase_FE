@@ -12,6 +12,7 @@ import { formatDateTime } from '@/lib/date';
 import { useMediaInlineUrlQuery } from '@/services/media/media.queries';
 import type { Media } from '@/services/media/media.types';
 import { formatFileSize, iconForMime, mediaKind } from '../mediaConstraints';
+import { ImageViewer } from './ImageViewer';
 
 interface MediaViewerDialogProps {
   media: Media;
@@ -123,13 +124,7 @@ function ViewerBody({
 
   switch (kind) {
     case 'image':
-      return (
-        <img
-          src={url}
-          alt={media.originalFilename ?? 'media'}
-          className="max-h-full max-w-full object-contain"
-        />
-      );
+      return <ImageViewer key={media.id} src={url} alt={media.originalFilename ?? 'media'} />;
     case 'video':
       // User-uploaded evidence has no caption track available.
       // eslint-disable-next-line jsx-a11y/media-has-caption
