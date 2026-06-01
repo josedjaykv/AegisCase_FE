@@ -118,6 +118,23 @@ export function useTransferCustodyMutation(id: string) {
   });
 }
 
+/**
+ * Take custody of the evidence as the caller (used before downloading a file
+ * when not the custodian). Seeds the detail cache and refreshes the chain + lists
+ * so the UI immediately reflects the new custodian.
+ */
+export function useTakeCustodyMutation(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => evidenceApi.takeCustody(id),
+    onSuccess: (updated) => {
+      qc.setQueryData(evidenceQueryKeys.detail(id), updated);
+      qc.invalidateQueries({ queryKey: evidenceQueryKeys.chain(id) });
+      qc.invalidateQueries({ queryKey: evidenceQueryKeys.lists() });
+    },
+  });
+}
+
 export function useArchiveEvidenceMutation(id: string) {
   const qc = useQueryClient();
   return useMutation({

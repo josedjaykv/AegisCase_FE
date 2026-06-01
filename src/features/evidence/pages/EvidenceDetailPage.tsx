@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RoleGate } from '@/auth/RoleGate';
 import { useDisplayNames } from '@/services/users/users.queries';
+import { useAuthStore } from '@/stores/auth.store';
 import {
   readEvidenceFromCache,
   useEvidenceChainQuery,
+  useTakeCustodyMutation,
   useViewedEvidence,
 } from '@/services/evidence/evidence.queries';
 import { formatDateTime } from '@/lib/date';
@@ -17,6 +19,7 @@ import { EvidenceViewDialog } from '../components/EvidenceViewDialog';
 import { TransferCustodyDialog } from '../components/TransferCustodyDialog';
 import { EvidenceArchiveButton } from '../components/EvidenceArchiveButton';
 import { CustodyChainTimeline } from '../components/CustodyChainTimeline';
+import { MediaGallery } from '@/features/media/components/MediaGallery';
 
 export function EvidenceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +38,12 @@ export function EvidenceDetailPage() {
 
   const custodianSub = e?.currentCustodianId ?? undefined;
   const { displayName } = useDisplayNames(custodianSub ? [custodianSub] : []);
+
+  // Custody gate for the media gallery: downloading evidence files requires
+  // holding custody (Option C). Viewing stays open.
+  const userSub = useAuthStore((s) => s.user?.sub);
+  const takeCustody = useTakeCustodyMutation(id ?? '');
+  const isCustodian = !!custodianSub && custodianSub === userSub;
 
   const backTo = e ? `/cases/${e.caseId}/evidence` : '/evidence';
 
@@ -139,6 +148,27 @@ export function EvidenceDetailPage() {
           ) : (
             <CustodyChainTimeline chain={chainQuery.data} isLoading={chainQuery.isLoading} />
           )}
+        </CardContent>
+      </Card>
+
+      {/* Media — keyed off the route id, so it never triggers the side-effecting view */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Media</CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Files attached to this evidence.</p>
+        </CardHeader>
+        <CardContent>
+          <MediaGallery
+            entityType="EVIDENCE"
+            entityId={id}
+            readOnly={e?.archived}
+            custodyGate={{
+              isCustodian,
+              takeCustody: async () => {
+                await takeCustody.mutateAsync();
+              },
+            }}
+          />
         </CardContent>
       </Card>
 

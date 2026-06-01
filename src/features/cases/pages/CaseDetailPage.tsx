@@ -16,11 +16,11 @@ import { ArchiveButton } from '../components/ArchiveButton';
 import { TeamMemberList } from '../components/TeamMemberList';
 import { useEvidenceListQuery } from '@/services/evidence/evidence.queries';
 import { EvidenceList } from '@/features/evidence/components/EvidenceList';
+import { MediaGallery } from '@/features/media/components/MediaGallery';
 import { Plus } from 'lucide-react';
 
 const PLACEHOLDER_TABS = [
   { value: 'audit', label: 'Audit', phase: 'Phase 8' },
-  { value: 'media', label: 'Media', phase: 'Phase 7' },
 ] as const;
 
 export function CaseDetailPage() {
@@ -142,6 +142,7 @@ export function CaseDetailPage() {
           <TabsTrigger value="evidence">Evidence</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="involved">Involved</TabsTrigger>
+          <TabsTrigger value="media">Media</TabsTrigger>
           {PLACEHOLDER_TABS.map((t) => (
             <TabsTrigger key={t.value} value={t.value}>
               {t.label}
@@ -290,6 +291,24 @@ export function CaseDetailPage() {
                   manageable={!c.archived}
                 />
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="media">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Media</CardTitle>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Files attached to this case.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <MediaGallery
+                entityType="CASE"
+                entityId={c.id}
+                readOnly={c.archived || c.status === 'CLOSED'}
+              />
             </CardContent>
           </Card>
         </TabsContent>
