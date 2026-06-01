@@ -19,7 +19,6 @@ import { EvidenceList } from '@/features/evidence/components/EvidenceList';
 import { Plus } from 'lucide-react';
 
 const PLACEHOLDER_TABS = [
-  { value: 'tasks', label: 'Tasks', phase: 'Phase 6' },
   { value: 'audit', label: 'Audit', phase: 'Phase 8' },
   { value: 'media', label: 'Media', phase: 'Phase 7' },
 ] as const;
@@ -141,6 +140,7 @@ export function CaseDetailPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="evidence">Evidence</TabsTrigger>
+          <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="involved">Involved</TabsTrigger>
           {PLACEHOLDER_TABS.map((t) => (
             <TabsTrigger key={t.value} value={t.value}>
@@ -217,6 +217,39 @@ export function CaseDetailPage() {
                   emptyHint="Register the first piece of evidence for this case."
                 />
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tasks">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
+              <div>
+                <CardTitle className="text-base">Tasks</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Open the board to manage this case’s tasks.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link to={`/cases/${c.id}/tasks`}>Open board</Link>
+                </Button>
+                {!c.archived && (
+                  <RoleGate roles={['ADMIN', 'DETECTIVE']}>
+                    <Button asChild size="sm">
+                      <Link to={`/cases/${c.id}/tasks/new`}>
+                        <Plus className="mr-2 h-4 w-4" /> New task
+                      </Link>
+                    </Button>
+                  </RoleGate>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="rounded-md border border-dashed border-border bg-card/40 p-6 text-center text-sm text-muted-foreground">
+                The Kanban board for this case lives on its own page for the best drag-and-drop
+                experience. <Link to={`/cases/${c.id}/tasks`} className="text-primary hover:underline">Open it →</Link>
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

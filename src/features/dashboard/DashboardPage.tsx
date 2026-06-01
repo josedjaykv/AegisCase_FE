@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/stores/auth.store';
 import { Badge } from '@/components/ui/badge';
+import { MyTasksWidget } from '@/features/tasks/components/MyTasksWidget';
 
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -8,12 +9,14 @@ export function DashboardPage() {
     <section>
       <header className="mb-6">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Phase 1 — signed in. Role-specific widgets land in later phases.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Signed in as {user?.email ?? '—'}.</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="sm:col-span-2 lg:row-span-2">
+          <MyTasksWidget />
+        </div>
+
         <article className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-medium text-muted-foreground">Current session</h2>
           <p className="mt-2 text-lg font-semibold text-foreground">{user?.email ?? '—'}</p>

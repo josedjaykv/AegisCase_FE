@@ -22,6 +22,11 @@ import { EvidenceNewPage } from '@/features/evidence/pages/EvidenceNewPage';
 import { EvidenceDetailPage } from '@/features/evidence/pages/EvidenceDetailPage';
 import { EvidenceEditPage } from '@/features/evidence/pages/EvidenceEditPage';
 import { EvidenceChainPage } from '@/features/evidence/pages/EvidenceChainPage';
+import { TasksPage } from '@/features/tasks/pages/TasksPage';
+import { CaseTasksPage } from '@/features/tasks/pages/CaseTasksPage';
+import { TaskNewPage } from '@/features/tasks/pages/TaskNewPage';
+import { TaskDetailPage } from '@/features/tasks/pages/TaskDetailPage';
+import { TaskEditPage } from '@/features/tasks/pages/TaskEditPage';
 import { env } from '@/lib/env';
 
 export function AppRoutes() {
@@ -65,6 +70,17 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute roles={['ADMIN', 'DETECTIVE']} />}>
             <Route path="/cases/:id/evidence/new" element={<EvidenceNewPage />} />
             <Route path="/evidence/:id/edit" element={<EvidenceEditPage />} />
+          </Route>
+
+          {/* Tasks: read + status/update for all (analyst-own enforced in UI + server);
+              create gated to ADMIN+DETECTIVE. Edit route open (server enforces own-task). */}
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/tasks/:id" element={<TaskDetailPage />} />
+          <Route path="/tasks/:id/edit" element={<TaskEditPage />} />
+          <Route path="/cases/:id/tasks" element={<CaseTasksPage />} />
+          <Route element={<ProtectedRoute roles={['ADMIN', 'DETECTIVE']} />}>
+            <Route path="/tasks/new" element={<TaskNewPage />} />
+            <Route path="/cases/:id/tasks/new" element={<TaskNewPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
